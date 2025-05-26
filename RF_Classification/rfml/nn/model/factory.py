@@ -1,6 +1,5 @@
 """Simplistic factory pattern for config defined swapping of architecture used.
 """
-__author__ = "Bryse Flowers <brysef@vt.edu>"
 
 # Internal Includes
 from .cldnn import CLDNN
@@ -8,6 +7,8 @@ from .cnn import CNN
 from .resnet_CT import resnet18,resnetx
 from .conv5 import TinyConv
 from .vgg16 import VGG16
+from .transformer import transformerBERT
+
 def build_model(model_name: str, input_samples: int, num_classes: int):
     """Factory method for dynamic creation of multiple neural architectures.
 
@@ -46,5 +47,7 @@ def build_model(model_name: str, input_samples: int, num_classes: int):
         return resnetx(input_samples=input_samples, num_classes=num_classes)
     elif model_name.upper() == "VGG16":
         return VGG16(input_samples=input_samples, num_classes=num_classes)
+    elif model_name.upper() == "TRANSFORMERBERT":
+        return transformerBERT(input_samples=input_samples, num_classes=num_classes)
     else:
         raise ValueError("Unknown neural network architecture ({})".format(model_name))

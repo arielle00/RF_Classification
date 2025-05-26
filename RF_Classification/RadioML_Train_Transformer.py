@@ -1,3 +1,4 @@
+
 from rfml.data import build_dataset
 from rfml.nn.eval import (
     compute_accuracy,
@@ -17,13 +18,13 @@ parser.set_defaults(augment=True)
 global args
 args=parser.parse_args()
 
-train, val, test, le = build_dataset(dataset_name="iq_by_mod_snr", path='./rfml/data/2018.01/iq_by_mod_snr.pkl')
+train, val, test, le = build_dataset(dataset_name="RML2016.10B", path='./rfml/data/RML2016.10b_converted.pkl')
 print('classes: ', len(le))
 print(type(train))
 # assert train.min() >= 0, "Labels contain negative values!"
 # assert Y.max() < n_classes, "Labels exceed number of classes!"
 
-model = build_model(model_name=args.model, input_samples=1024, num_classes=25)
+model = build_model(model_name=args.model, input_samples=128, num_classes=10)
 print(model)
 trainer = build_trainer(
     strategy="standard", max_epochs=20, gpu=True
@@ -48,8 +49,8 @@ print("SNR (dB)\tAccuracy (%)")
 print("===============================")
 for acc, snr in zip(acc_vs_snr, snr):
     print("{snr:d}\t{acc:0.1f}".format(snr=snr, acc=acc * 100))
-# print("===============================")
-# print("Confusion Matrix:")
-# print(cmn)
+print("===============================")
+print("Confusion Matrix:")
+print(cmn)
 if args.model_save == True:
     model.save("RM2016_best.pt")

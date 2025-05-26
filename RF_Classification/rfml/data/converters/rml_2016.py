@@ -206,4 +206,3 @@ def load_GOLD_XYZ_OSC_dataset(path: str = None) -> Dataset:
         warning_msg=WARNING_MSG,
     )
     return loader.load(path=path)
-
