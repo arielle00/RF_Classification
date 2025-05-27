@@ -158,11 +158,15 @@ class StandardTrainingStrategy(TrainingStrategy):
             y = Variable(y.to(self.device)) 
 
             # Forward pass of prediction
+           
             outputs = model(x)
+            # print("Y dtype:", y.dtype)         # must be torch.long
+            # print("Y min/max:", y.min(), y.max())  # should be in 0..9
 
             # Zero out the parameter gradients, because they are cumulative,
             # compute loss, compute gradients (backward), update weights
             loss = loss_fn(outputs, y)
+            # print("Loss:", loss.item())
             optimizer.zero_grad()
             loss.backward()
             optimizer.step()

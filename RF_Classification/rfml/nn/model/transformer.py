@@ -2,6 +2,7 @@ import torch.nn as nn
 import torch
 from transformers import BertConfig, BertModel
 from .base import Model
+from rfml.nn.layers import Flatten, PowerNormalization
 
 
 class transformerBERT(Model):
@@ -16,7 +17,7 @@ class transformerBERT(Model):
 
     def __init__(self, input_samples: int, num_classes: int):
         super().__init__(input_samples, num_classes)
-
+        self.preprocess = PowerNormalization()
         config = BertConfig(
             vocab_size=1,  # Not used, but required
             hidden_size=128,
@@ -31,22 +32,31 @@ class transformerBERT(Model):
 
         # Project (I/Q input) → hidden_size
         self.input_proj = nn.Linear(2, config.hidden_size)  # 2 channels: I and Q
+        self.norm = nn.LayerNorm(config.hidden_size)
+        
+        # Dropout for regularization
+        self.dropout = nn.Dropout(0.1)
 
         self.classifier = nn.Linear(config.hidden_size, num_classes)
+        nn.init.xavier_uniform_(self.classifier.weight)
+        self.classifier.bias.data.fill_(0.01)
 
     def forward(self, x):
-        # x shape: (batch_size, 2, seq_len)
-        # print(x.shape)
+        x = self.preprocess(x)
         x = x.squeeze(1)             # → (batch_size, 2, 128)
         x = x.permute(0, 2, 1)       # → (batch_size, seq_len=128, channels=2)
         x = self.input_proj(x)       # → (batch_size, seq_len, hidden_size)
+
+        x = self.norm(x) 
 
         # Create dummy attention mask
         attention_mask = torch.ones(x.shape[:2], dtype=torch.long, device=x.device)
 
         outputs = self.bert(inputs_embeds=x, attention_mask=attention_mask)
         cls_output = outputs.last_hidden_state[:, 0, :]  # [CLS] token output
-        return self.classifier(cls_output)
+        
+        logits = self.classifier(self.dropout(cls_output))
+        return logits
 
     # def _freeze(self):
     #     """Freeze BERT transformer layers but allow classifier to train."""

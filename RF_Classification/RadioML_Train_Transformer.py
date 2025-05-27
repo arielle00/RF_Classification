@@ -26,9 +26,13 @@ print(type(train))
 
 model = build_model(model_name=args.model, input_samples=128, num_classes=10)
 print(model)
+n_params = sum(p.numel() for p in model.parameters() if p.requires_grad)
+print(f"Trainable parameters: {n_params}")
+
 trainer = build_trainer(
     strategy="standard", max_epochs=20, gpu=True
 )  # Note: Disable the GPU here if you do not have one
+
 
 trainer.register_listener(PrintingTrainingListener())
 
